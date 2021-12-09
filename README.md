@@ -1,21 +1,21 @@
-# ReScript Project Template
+# ReAdvent 2021
 
-The only official ReScript starter template.
+Advent Calendar 2021 with ReScript.
 
 ## Installation
 
 ```sh
-npm install
+yarn install
 ```
 
 ## Build
 
-- Build: `npm run build`
-- Clean: `npm run clean`
-- Build & watch: `npm run start`
+- Build: `yarn build`
+- Clean: `yarn clean`
+- Build & watch: `yarn start`
 
 ## Run
 
 ```sh
-node src/Demo.bs.js
+node src/day1.bs.js
 ```
