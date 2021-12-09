@@ -7,8 +7,8 @@ let readings: array<int> = String.split_on_char('\n', data)
   -> Belt.List.toArray
 
 let createWindow = arr => Belt.Array.mapWithIndex(arr, (index, reading) => {
-  if index - 1 >= 0 && index + 1 < Belt.Array.length(readings) {
-    let window = readings[index - 1] + reading + readings[index + 1]
+  if index - 1 >= 0 && index + 1 < Belt.Array.length(arr) {
+    let window = arr[index - 1] + reading + arr[index + 1]
     Some(window)
   } else {
     None
