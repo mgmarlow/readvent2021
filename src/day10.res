@@ -1,66 +1,87 @@
 open Belt
 
-exception Bad_expression
+exception Bad_expression(string)
 
-let data = Node.Fs.readFileSync("./data/day10.txt", #utf8)
-  -> String.trim
+let data = Node.Fs.readFileSync("./data/day10.txt", #utf8)->String.trim
 
-let peek = arr => arr->Js.Array2.unsafe_get(Array.length(arr) - 1)
+let peek = arr => arr->Array.getUnsafe(Array.length(arr) - 1)
 
-let consume = (arr: array<string>, expected: string) => {
+let consume = (arr: array<string>, expected: string, ~origin) => {
   let last = peek(arr)
 
   if last == expected {
     arr->Array.slice(~offset=0, ~len=Array.length(arr) - 1)
   } else {
-    raise(Bad_expression)
+    raise(Bad_expression(origin))
   }
 }
 
 let totalPoints = ref(0)
 let tallyPoints = c => {
   let nextPoints = switch c {
-  | Some(")") => 3
-  | Some("]") => 57
-  | Some("}") => 1197
-  | Some(">") => 25137
+  | ")" => 3
+  | "]" => 57
+  | "}" => 1197
+  | ">" => 25137
   | _ => 0
   }
 
   totalPoints.contents + nextPoints
 }
 
-let rec isValid = (~expressions=[], line: array<string>) => {
-  if Array.length(line) == 0 {
-    true
+let rec buildStack = (~stack=[], line) => {
+  if List.length(line) == 0 {
+    stack
   } else {
-    // bad mutation.
-    let cur = line->Js.Array2.shift
-    try {
-      let nextExpressions = switch cur {
-      | Some(")") => expressions->consume("(")
-      | Some("]") => expressions->consume("[")
-      | Some("}") => expressions->consume("{")
-      | Some(">") => expressions->consume("<")
-      | Some(c) => Array.concat(expressions, [c])
-      | None => expressions
-      }
-
-      isValid(~expressions=nextExpressions, line)
-    } catch {
-      | Bad_expression => {
-        totalPoints := tallyPoints(cur)
-        false
-      }
-      | _ => false
+    let (head, tail) = switch line {
+    | list{head, ...tail} => (head, tail)
+    | list{} => ("", list{})
     }
+
+    let newStack = switch head {
+    | ")" => stack->consume("(", ~origin=")")
+    | "]" => stack->consume("[", ~origin="]")
+    | "}" => stack->consume("{", ~origin="}")
+    | ">" => stack->consume("<", ~origin=">")
+    | c => Array.concat(stack, [c])
+    }
+
+    buildStack(~stack=newStack, tail)
   }
 }
 
-let lines = data
+let isValid = (line: list<string>) => {
+  try {
+    let _ = buildStack(~stack=[], line)
+    true
+  } catch {
+  | Bad_expression(origin) => {
+      totalPoints := tallyPoints(origin)
+      false
+    }
+  | _ => false
+  }
+}
+
+// let complete = line => {
+//   let stack = buildStack(line)
+//   let elements = []
+
+//   while Array.length(stack) > 0 {
+//     let last = stack->Js.Array2.pop
+//     switch last {
+//     | ")" => 
+//     | "]" =>
+//     | "}" =>
+//     | ">" =>
+//     }
+//   }
+// }
+
+let lines =
+  data
   ->Js.String2.split("\n")
-  ->Array.map(s => s->Js.String2.split(""))
+  ->Array.map(s => s->Js.String2.split("")->List.fromArray)
   ->Array.keep(isValid)
 
-Js.log(lines)
 Js.log(totalPoints.contents)
