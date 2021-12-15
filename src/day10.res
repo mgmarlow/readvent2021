@@ -1,24 +1,69 @@
 open Belt
 
 exception Bad_expression(string)
+exception Bad_token(string)
 
 let data = Node.Fs.readFileSync("./data/day10.txt", #utf8)->String.trim
 
-let peek = arr => arr->Array.getUnsafe(Array.length(arr) - 1)
+let getCompletedToken = c =>
+  switch c {
+  | "(" => ")"
+  | "[" => "]"
+  | "{" => "}"
+  | "<" => ">"
+  | _ => raise(Bad_token(c))
+  }
 
-let consume = (arr: array<string>, expected: string, ~origin) => {
-  let last = peek(arr)
+let completes = (last, actual) => getCompletedToken(last) == actual
 
-  if last == expected {
-    arr->Array.slice(~offset=0, ~len=Array.length(arr) - 1)
-  } else {
-    raise(Bad_expression(origin))
+let getCompleted = line => {
+  let stack = line->List.toArray
+  let queue = []
+  let autocomplete = []
+
+  while Array.length(stack) > 0 {
+    let last = stack->Js.Array2.pop->Option.getUnsafe
+
+    if last == ")" || last == "}" || last == ">" || last == "]" {
+      let _ = queue->Js.Array2.push(last)
+    } else if Array.length(queue) > 0 {
+      let closing = queue->Js.Array2.pop->Option.getUnsafe
+      if !completes(last, closing) {
+        raise(Bad_expression(closing))
+      }
+    } else {
+      let _ = autocomplete->Js.Array2.push(getCompletedToken(last))
+    }
+  }
+
+  autocomplete
+}
+
+let isValid = (line: list<string>) => {
+  try {
+    let _ = getCompleted(line)
+    true
+  } catch {
+  | _ => false
   }
 }
 
-let totalPoints = ref(0)
-let tallyPoints = c => {
-  let nextPoints = switch c {
+let tallyComplete = arr => {
+  arr->Array.reduce(0.0, (acc, cur) => {
+    let charScore = switch cur {
+    | ")" => 1.0
+    | "]" => 2.0
+    | "}" => 3.0
+    | ">" => 4.0
+    | _ => 0.0
+    }
+
+    acc *. 5.0 +. charScore
+  })
+}
+
+let getInvalidPoints = c =>
+  switch c {
   | ")" => 3
   | "]" => 57
   | "}" => 1197
@@ -26,62 +71,39 @@ let tallyPoints = c => {
   | _ => 0
   }
 
-  totalPoints.contents + nextPoints
-}
+let characterArrays =
+  data->Js.String2.split("\n")->Array.map(s => s->Js.String2.split("")->List.fromArray)
 
-let rec buildStack = (~stack=[], line) => {
-  if List.length(line) == 0 {
-    stack
-  } else {
-    let (head, tail) = switch line {
-    | list{head, ...tail} => (head, tail)
-    | list{} => ("", list{})
+let invalidPoints =
+  characterArrays
+  ->Array.map(line => {
+    try {
+      let _ = getCompleted(line)
+      0
+    } catch {
+    | Bad_expression(origin) => getInvalidPoints(origin)
+    | _ => 0
     }
+  })
+  ->Array.reduce(0, (acc, cur) => acc + cur)
 
-    let newStack = switch head {
-    | ")" => stack->consume("(", ~origin=")")
-    | "]" => stack->consume("[", ~origin="]")
-    | "}" => stack->consume("{", ~origin="}")
-    | ">" => stack->consume("<", ~origin=">")
-    | c => Array.concat(stack, [c])
-    }
+Js.log(invalidPoints)
+// 392139
 
-    buildStack(~stack=newStack, tail)
-  }
-}
-
-let isValid = (line: list<string>) => {
-  try {
-    let _ = buildStack(~stack=[], line)
-    true
-  } catch {
-  | Bad_expression(origin) => {
-      totalPoints := tallyPoints(origin)
-      false
-    }
-  | _ => false
-  }
-}
-
-// let complete = line => {
-//   let stack = buildStack(line)
-//   let elements = []
-
-//   while Array.length(stack) > 0 {
-//     let last = stack->Js.Array2.pop
-//     switch last {
-//     | ")" => 
-//     | "]" =>
-//     | "}" =>
-//     | ">" =>
-//     }
-//   }
-// }
-
-let lines =
-  data
-  ->Js.String2.split("\n")
-  ->Array.map(s => s->Js.String2.split("")->List.fromArray)
+let completedTallies =
+  characterArrays
   ->Array.keep(isValid)
+  ->Array.map(getCompleted)
+  ->Array.map(tallyComplete)
+  ->SortArray.stableSortBy((a, b) => {
+    if a > b {
+      1
+    } else if a < b {
+      -1
+    } else {
+      0
+    }
+  })
 
-Js.log(totalPoints.contents)
+Js.log(completedTallies[Array.length(completedTallies) / 2])
+// 4001832844
