@@ -1,6 +1,6 @@
 open Belt
 
-let data = Node.Fs.readFileSync("./data/day7.txt", #utf8)
+let data = Node.Fs.readFileSync("./data/day07.txt", #utf8)
   -> String.trim
 
 let positions = String.split_on_char(',', data)

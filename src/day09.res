@@ -1,6 +1,6 @@
 open Belt
 
-let data = Node.Fs.readFileSync("./data/day9.txt", #utf8)
+let data = Node.Fs.readFileSync("./data/day09.txt", #utf8)
   -> String.trim
 
 let heightmap = String.split_on_char('\n', data)

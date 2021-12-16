@@ -1,4 +1,4 @@
-let data = Node.Fs.readFileSync("./data/day2.txt", #utf8)
+let data = Node.Fs.readFileSync("./data/day02.txt", #utf8)
 
 let getCommandTuple = line => {
   let raw = String.split_on_char(' ', line)

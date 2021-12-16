@@ -1,4 +1,4 @@
-let data = Node.Fs.readFileSync("./data/day1.txt", #utf8)
+let data = Node.Fs.readFileSync("./data/day01.txt", #utf8)
 
 let readings: array<int> = String.split_on_char('\n', data)
   -> Belt.List.map(reading => Belt.Int.fromString(reading))

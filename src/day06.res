@@ -1,4 +1,4 @@
-let data = Node.Fs.readFileSync("./data/day6.txt", #utf8)
+let data = Node.Fs.readFileSync("./data/day06.txt", #utf8)
 
 let getFishCounts = fishes => {
   let empty = Belt.Array.make(9, 0)
