@@ -4,7 +4,8 @@
   "scripts": {
     "build": "rescript",
     "clean": "rescript clean -with-deps",
-    "start": "rescript build -w"
+    "start": "rescript build -w",
+    "test": "jest --watch"
   },
   "keywords": [
     "rescript"
@@ -12,6 +13,8 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
+    "@glennsl/rescript-jest": "^0.9.0",
+    "jest": "^27.4.5",
     "rescript": "*"
   }
 }
