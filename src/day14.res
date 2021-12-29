@@ -66,5 +66,97 @@ let (template, rules) = getTemplateInfo(data)
 let t10 = growPolymer(template, rules, 10)
 Js.log(t10->counts)
 
-// let t40 = growPolymer(template, rules, 40)
-// Js.log(t40->counts)
+// For part 2, we can't store the entire template due to its
+// rate of growth. Instead, we only store counts of pairs
+// in a hash.
+let increment = (~by=1.0, dict, key) => {
+  let count = switch dict->Js.Dict.get(key) {
+  | Some(n) => n +. by
+  | None => by
+  }
+
+  dict->Js.Dict.set(key, count)
+}
+
+let getPairsFromTemplate = template => {
+  let els = template->Js.String2.split("")
+
+  els->Belt.Array.reduceWithIndex(Js.Dict.empty(), (acc, cur, i) => {
+    if i + 1 < els->Array.length {
+      let pair = cur ++ els[i + 1]
+      acc->increment(pair)
+    }
+
+    acc
+  })
+}
+
+let rec countPairs = (templatePairs, rules, step) => {
+  if step <= 0 {
+    templatePairs
+  } else {
+    let newPairs = templatePairs->Js.Dict.entries->Js.Array2.reduce((acc, cur) => {
+        let (pair, count) = cur
+
+        switch rules->Js.Dict.get(pair) {
+        | Some(c) => {
+            let (left, right) = {
+              let pairArray = pair->Js.String2.split("")
+              (pairArray[0], pairArray[1])
+            }
+
+            acc->increment(left ++ c, ~by=count)
+            acc->increment(c ++ right, ~by=count)
+          }
+        | None => acc->increment(pair, ~by=count)
+        }
+
+        acc
+      }, Js.Dict.empty())
+
+    countPairs(newPairs, rules, step - 1)
+  }
+}
+
+let countCharacters = pairs => {
+  let entries = pairs->Js.Dict.entries
+
+  entries->Js.Array2.reducei((acc, cur, i) => {
+    let (key, count) = cur
+
+    // Disregard left since pairs intersect
+    let (_, right) = {
+      let components = key->Js.String2.split("")
+      (components[0], components[1])
+    }
+
+    acc->increment(right, ~by=count)
+
+    acc
+  }, Js.Dict.empty())
+}
+
+let greatest = dict => {
+  dict->Js.Dict.keys->Js.Array2.reduce((acc, cur) => {
+    switch dict->Js.Dict.get(cur) {
+    | Some(n) => n > acc ? n : acc
+    | None => acc
+    }
+  }, 0.0)
+}
+
+let least = dict => {
+  let keys = dict->Js.Dict.keys
+
+  keys->Js.Array2.reduce((acc, cur) => {
+    switch dict->Js.Dict.get(cur) {
+    | Some(n) => n < acc ? n : acc
+    | None => acc
+    }
+  }, dict->Js.Dict.get(keys[0])->Belt.Option.getUnsafe)
+}
+
+let pairs40 = countPairs(getPairsFromTemplate(template), rules, 40)
+let counts40 = countCharacters(pairs40)
+Js.log(counts40)
+Js.log(greatest(counts40) -. least(counts40))

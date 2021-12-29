@@ -43,4 +43,41 @@ describe("day 14", () => {
     let polymer = Day14.growPolymer(startingTemplate, rules, 4)
     expect(polymer)->toBe("NBBNBNBBCCNBCNCCNBBNBBNBBBNBBNBBCBHCBHHNHCBBCBHCB")
   })
+
+  test("#getPairsFromTemplate", () => {
+    let pairs = Day14.getPairsFromTemplate("NNCB")
+    expect(pairs)->toEqual(Js.Dict.fromList(list{("NN", 1.0), ("NC", 1.0), ("CB", 1.0)}))
+  })
+
+  test("#countPairs", () => {
+    let pairs = Day14.getPairsFromTemplate("NNCB")
+    let finalPairs = Day14.countPairs(pairs, rules, 1)
+    expect(finalPairs)->toEqual(
+      Js.Dict.fromList(list{
+        ("NC", 1.0),
+        ("CN", 1.0),
+        ("NB", 1.0),
+        ("BC", 1.0),
+        ("CH", 1.0),
+        ("HB", 1.0),
+      }),
+    )
+  })
+
+  test("#countPairs 2 step", () => {
+    let pairs = Day14.getPairsFromTemplate("NNCB")
+    let finalPairs = Day14.countPairs(pairs, rules, 2)
+    expect(finalPairs)->toEqual(
+      Js.Dict.fromList(list{
+        ("NB", 2.0),
+        ("BC", 2.0),
+        ("CC", 1.0),
+        ("CN", 1.0),
+        ("BB", 2.0),
+        ("CB", 2.0),
+        ("BH", 1.0),
+        ("HC", 1.0),
+      }),
+    )
+  })
 })
